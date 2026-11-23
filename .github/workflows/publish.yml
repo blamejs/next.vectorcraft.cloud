@@ -90,19 +90,10 @@ jobs:
         with:
           repository: storytold/vectorcraft
           ref: ${{ needs.compare.outputs.sha }}
-          fetch-depth: 0
           persist-credentials: false
-      - name: Check out the shared actions
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: storytold/craft-common-actions
-          path: .craft-common-actions
-          persist-credentials: false
-      - name: Refresh the contributor credits for this commit
-        # The release workflow does this in refresh-contributors.yml before every build.
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 .craft-common-actions/actions/refresh-contributors/refresh_contributors.py --repo storytold/vectorcraft --directory .
+      # The contributor credits (About window) come from contributors/contributors.json as committed
+      # at this commit. The release workflow refreshes that file first, but its script makes GraphQL
+      # queries of storytold/vectorcraft, which this repository's GITHUB_TOKEN may not make.
       - name: Read the craft-fonts pin
         id: fonts
         run: |
