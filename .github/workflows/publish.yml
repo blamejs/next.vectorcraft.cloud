@@ -104,11 +104,23 @@ jobs:
         uses: storytold/craft-common-actions/actions/rust-channel@main
         with:
           targets: wasm32-unknown-unknown
-      - uses: step-security/dtolnay-rust-toolchain@8dd607977d06adf4ed49b190381e74c17a9dd25f # v1.0.0
-        with:
-          toolchain: ${{ steps.rust.outputs.toolchain }}
-          targets: ${{ steps.rust.outputs.targets }}
-          components: ${{ steps.rust.outputs.components }}
+      # rustup is on GitHub's runners; the release workflow's toolchain action is free only for public
+      # repositories.
+      - name: Install the toolchain
+        env:
+          TOOLCHAIN: ${{ steps.rust.outputs.toolchain }}
+          TARGETS: ${{ steps.rust.outputs.targets }}
+          COMPONENTS: ${{ steps.rust.outputs.components }}
+        run: |
+          set -euo pipefail
+          [[ $TOOLCHAIN =~ ^[A-Za-z0-9._-]+$ ]] || { echo "unexpected toolchain: $TOOLCHAIN" >&2; exit 1; }
+          rustup toolchain install "$TOOLCHAIN" --profile minimal --no-self-update
+          IFS=, read -ra targets <<<"$TARGETS"
+          for t in "${targets[@]}"; do [[ -z $t ]] || rustup target add --toolchain "$TOOLCHAIN" "$t"; done
+          IFS=, read -ra components <<<"$COMPONENTS"
+          for c in "${components[@]}"; do [[ -z $c ]] || rustup component add --toolchain "$TOOLCHAIN" "$c"; done
+          rustup default "$TOOLCHAIN"
+          rustc --version --verbose
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           key: next-web
