@@ -16,8 +16,9 @@ https://next.vectorcraft.cloud/ serves a web build of the `main` branch of https
     as the workflow artifact `web-zip`.
   - `publish` downloads the zip and uploads it with `scripts/publish.sh` as a new build with the id
     `<first 12 characters of the commit>.<UTC time>`. It then checks the site with `scripts/check.sh` and records the
-    result with `scripts/mark-checked.sh`. When the check fails, the last build that passed its check is served again
-    (`scripts/rollback.sh`). A commit that failed its check is not built again until `main` moves to another
+    result with `scripts/mark-checked.sh`. When the check shows the build is wrong, the last build that passed its
+    check is served again (`scripts/rollback.sh`). When the check cannot reach the site from the runner (for example
+    Cloudflare answering 403 to GitHub's addresses), the build stays live with a warning. A commit that failed its check is not built again until `main` moves to another
     commit or the workflow is run by hand with `force` set. `scripts/cleanup.sh` keeps the last 3 builds and
     deletes older ones. When the run's commit is not newer on `main` than the published build, the job does not
     publish it.
