@@ -80,11 +80,35 @@ jobs:
     needs: compare
     if: needs.compare.outputs.changed == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: 0
     steps:
+      # A private repository's standard runner has 7 GB of memory, less than compiling the engine
+      # crate takes; a swap file keeps the compiler from being killed.
+      - name: Add swap
+        run: |
+          set -euo pipefail
+          free -g
+          df -h /
+          # The runner image carries toolchains this build does not use; removing them frees disk for
+          # the swap file and the build.
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h /
+          # Up to 16 GiB, leaving 20 GiB of the free space on / for the checkout and the build.
+          free_gib=$(( $(df --output=avail -B1 / | tail -n 1 | tr -dc '0-9') / 1073741824 ))
+          size=$((free_gib - 20))
+          if [[ $size -gt 16 ]]; then size=16; fi
+          if [[ $size -lt 2 ]]; then
+            echo "::warning::only ${free_gib} GiB free on /; building without extra swap"
+            exit 0
+          fi
+          sudo fallocate -l "${size}G" /swapfile-build
+          sudo chmod 600 /swapfile-build
+          sudo mkswap /swapfile-build
+          sudo swapon /swapfile-build
+          free -g
       - name: Check out VectorCraft
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
