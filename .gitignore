@@ -1,0 +1,5 @@
+node_modules/
+.wrangler/
+.deploy/
+dl/
+site/
