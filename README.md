@@ -7,7 +7,8 @@ https://next.vectorcraft.cloud/ serves a web build of the `main` branch of https
   A page and the files it loads therefore always come from one build. It sends each `.wasm` file Brotli-compressed to
   browsers that accept `br`, and adds an `X-Build` header naming the build. The bucket layout is described at the top
   of the file.
-- `.github/workflows/publish.yml` runs at 00:23 and 12:23 UTC. It builds only when the head of `main` differs from the
+- `.github/workflows/publish.yml` runs every 4 hours, at 23 minutes past 00:00, 04:00, 08:00, 12:00, 16:00 and 20:00
+  UTC. It builds only when the head of `main` differs from the
   served build, or the served build has not passed its check, or when it is run by hand with `force` set. It has
   three jobs:
   - `compare` reads the head of `main` and the bucket's `STATE`.

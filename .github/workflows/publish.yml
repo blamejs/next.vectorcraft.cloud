@@ -2,7 +2,7 @@ name: Build and publish main
 
 on:
   schedule:
-    - cron: "23 */12 * * *"
+    - cron: "23 */4 * * *"
   workflow_dispatch:
     inputs:
       force:
